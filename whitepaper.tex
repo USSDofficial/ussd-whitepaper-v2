@@ -1,0 +1,69 @@
+%
+% The first command in your LaTeX source must be the \documentclass command.
+\documentclass{article}
+
+\usepackage[]{todonotes} % notes not showed
+%% \usepackage[draft]{todonotes}   % notes showed
+
+\usepackage{hyperref}
+\usepackage{graphics}
+\usepackage{multicol}
+\usepackage{csquotes}
+
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{makecell}
+
+\usepackage{footnote}
+
+\usepackage{hyperref}
+
+\usepackage{graphicx}
+
+\usepackage{amsmath}
+\newcommand{\Mod}[1]{\ (\mathrm{mod}\ #1)}
+
+%
+% \BibTeX command to typeset BibTeX logo in the docs
+\AtBeginDocument{%
+  \providecommand\BibTeX{{%
+    \normalfont B\kern-0.5em{\scshape i\kern-0.25em b}\kern-0.8em\TeX}}}
+
+\begin{document}
+
+\title{Autonomous secure dollar (USSD)\ \\white paper}
+
+\author{David Lee \href{mailto:davidleechaum@proton.me}{davidleechaum@proton.me}}
+
+\maketitle
+
+%
+% The abstract is a short summary of the work to be presented in the article.
+\begin{abstract}
+The Autonomous Secure Dollar (USSD) is the project aimed to create a fully autonomous,
+immutable, open-source, decentralized and radically overcollateralized stablecoin
+pegged to US dollar. USSD is designed to have safe collateralization ratio and
+decentralized insurance coverage, ensuring long-term stability. USSD  collateral
+contains only crypto assets and has no ties to any real world assets or financial
+institutions such as treasuries or banks.
+
+It has been designed to be censorship-resistant, ensuring that
+it can remain operational without interference.
+
+
+\end{abstract}
+
+%%\keywords{blockchain, stablecoin}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\input{1_operating_principles.tex}
+\input{2_implementation_details.tex}
+
+\bibliographystyle{acm} \bibliography{paper}
+
+\end{document}

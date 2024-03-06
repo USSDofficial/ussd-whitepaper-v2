@@ -1,0 +1,94 @@
+\section{Implementation Details}
+
+The actual price information is used for the following features:
+\begin{itemize}
+\item Mint (to evaluate provided collateral);
+\item Redeem (to evaluate collateral to be returned);
+\item Staking premium amount calculation.
+\end{itemize}
+
+USSD itself won't do any automatic actions depending on some price fluctuations of it or it's collateral constituents in any liquidity pool, etc. It is up to market participants that are financially incentivized to remove any peg discrepancies using mint and redeem functions. This means less attack vectors and simpler implementation without dependence on DEXes or other means of executing trades, rebalancing or any other direct market participation.
+
+The USSD actually as a system contains several smart contracts, which are semantically separated (and also to keep up with encapsulation principle):
+\begin{itemize}
+\item USSD.sol: stablecoin ERC20 token contract;
+\item USSDStaking.sol: abstract contract (acts as a base for USSD-rewards yielding tokens);
+\item stUSSD.sol: contract for the staking of USSD, providing interest-bearing stUSSD ERC20 token;
+\item ICT.sol: (insurance claim trust) contract for insurance (also provides rewards in USSD as stUSSD).
+\end{itemize}
+
+\subsection{USSD contract}
+
+USSD stablecoin ERC20 contract can be divided into following sections:
+\begin{itemize}
+\item standard ERC20 base functions (transfer, balanceOf, totalSupply, etc. No modifications, fully standard implementations are used);
+\item admin functions (limited to switching stablecoin collateral and switching to WETH completely), only could be executed once;
+\item mint logic for providing collateral;
+\item mint logic for reward contracts;
+\item redeem logic;
+\item collateral factor evaluation;
+\end{itemize}
+
+\subsection{USSD rewards abstract contract}
+
+USSD rewards contract acts as a base contract for stUSSD and ICT contracts, to contain single implementation of reward calculation mechanics.
+\begin{itemize}
+\item Maintain balances of provided tokens;
+\item Calculate rewards based on USSD collateral evaluation;
+\item Maintain claimed and pending USSD rewards for stakers;
+\end{itemize}
+
+\subsection{stUSSD contract}
+stUSSD (staked USSD) contract is an ERC20-based contract (and also derived from USSD rewards contract), providing:
+\begin{itemize}
+\item standard ERC20 base functions;
+\item Deposit and Withdraw methods for staking and unstaking USSD (the only way stUSSD is minted and burned, respectively);
+\end{itemize}
+
+\subsection{ICT contract}
+stUSSD (staked USSD) contract is an ERC20-based contract (and also derived from USSD rewards contract), providing:
+\begin{itemize}
+\item standard ERC20 base functions;
+\item Deposit WBGL/WETH logic (including ICT tokens mint price increase);
+\item Logic of transferring insurance collateral to USSD contract in case of insurance scenario;
+\end{itemize}
+
+\subsection{Dependencies and deployment}
+
+This is a list of dependencies the USSD smart contract has for its implementation
+and functioning:
+
+\begin{enumerate}
+  \item Solmate solidity library for ERC20 functions and some utility functions;
+  \item Collateral constituent contracts (WETH, WBTC, WBGL and respective stablecoin contract);
+  \item Oracle implementation (ChainLink contracts).
+\end{enumerate}
+
+
+\subsection{Detecting macro cycle phase}
+
+To calculate BTC-based cycle phase an assumtion is made that every 210000 blocks a halvening event occurs which converges to 4 years, and target block time for BTC being 10 minutes (600 seconds). Thus, as static formula could be use to determine that:
+
+\[
+c = (b_s + (block.timestamp - t_s) / 600) \mod 210000,
+\]
+where \(b_s\) and \(t_s\) is a block number and timestamp at some (calculation start) point in time.
+\(c\) therefore would mark an estimation of block in BTC's 0-210000 halvening interval.
+In terms mentioned, if \(c > 52500\) and \(c \le 105000\) it is BTC "summer" during the cycle.
+
+
+\subsection{Collateral storage}
+
+The USSD contract acts itself as collateral holder. No other entity has access to USSD 
+collateral except the contract's logic of collateral transfer during mint/redeem operations. 
+In addition, at any moment, the collateral balances on the address of the USSD smart-contract 
+serve as the proof of collateral presence and sufficiency. Collateral is not allocated in any other project 
+(lending/borrowing platforms, investment vaults etc.) and is fully visible at all times.
+
+Prices of collateral components are measured through a series of contracts implementing simple
+oracle-like interface. There's some flexibility reserved at the time of writing related to
+the oracle implementations: there are numerous options available, such as using Chainlink
+zfrom Uniswap V3 pools, or other implementations. Oracle contract is assumed to return the price
+in USD (but that is just the naming of the function). Various approaches to implementing 
+price measurement have their own benefits and risks, and could be a part of further research.
+
